@@ -6,125 +6,125 @@ The challenge requires designing and implementing a modular agentic automation s
 
 ## Solution Overview
 
-This project implements a multi-agent content generation system using Python with Pydantic for data modeling and OpenAI's GPT for intelligent content generation. The architecture follows a modular design with clear agent boundaries, a sequential orchestration flow, reusable logic blocks for content transformation, and a custom template engine for structured output generation. The system processes the GlowBoost Vitamin C Serum product data to produce FAQ, product description, and comparison pages in JSON format.
+This project implements a multi-agent content generation system using CrewAI framework with specialized agents for different aspects of content creation. The system uses OpenAI's GPT-4 through CrewAI agents to autonomously generate all content without hardcoded fallbacks or fake outputs. The architecture follows proper agent orchestration with clear roles, responsibilities, and task dependencies. The system processes the GlowBoost Vitamin C Serum product data to produce FAQ, product description, and comparison pages in JSON format.
 
 ## Scopes & Assumptions
 
 - **Input Data**: Strictly uses only the provided GlowBoost Vitamin C Serum data; no external research or additional facts are added.
-- **Product B**: For comparison page, creates a fictional but realistic skincare product with structured attributes.
-- **AI Generation**: Leverages OpenAI's GPT-4 for content generation within defined templates and logic blocks.
+- **Product B**: For comparison page, AI generates a fictional but realistic skincare product dynamically.
+- **AI Generation**: Uses CrewAI with OpenAI GPT-4 for all content generation - no hardcoded answers or fallbacks.
 - **Output Format**: All pages are generated as machine-readable JSON with consistent structure.
-- **Agent Architecture**: Each agent has single responsibility, defined I/O, and operates without global state.
-- **Orchestration**: Uses a linear pipeline flow for simplicity and reliability.
-- **Dependencies**: Requires OpenAI API key for LLM functionality.
+- **Agent Framework**: Uses CrewAI (required framework) for proper multi-agent orchestration.
+- **Question Count**: Generates at least 15 categorized questions as required.
+- **No Fakes**: All content is AI-generated in real-time, no static strings or rule-based fallbacks.
 
 ## System Design
 
-### Agent Architecture
+### CrewAI Agent Architecture
 
-The system consists of four specialized agents, each with clear boundaries and responsibilities:
+The system consists of five specialized CrewAI agents, each with distinct roles and expertise:
 
-1. **DataParser Agent**
-   - **Responsibility**: Parse and validate raw product data into structured internal model
-   - **Input**: Raw product dictionary
-   - **Output**: Validated Product Pydantic model
-   - **Logic**: Converts string data to typed, validated structure
+1. **Data Parser Agent**
+   - **Role**: Data Validator
+   - **Goal**: Parse and validate raw product data into structured format
+   - **Backstory**: Expert data validator ensuring product information is correctly structured
+   - **Output**: Validated JSON structure of product data
 
-2. **QuestionGenerator Agent**
-   - **Responsibility**: Generate at least 15 categorized user questions based on product data
-   - **Input**: Product model
-   - **Output**: Dictionary of categorized questions
-   - **Logic**: Uses LLM to create relevant questions across categories (Informational, Safety, Usage, Purchase, Comparison)
+2. **Question Generator Agent**
+   - **Role**: Content Strategist
+   - **Goal**: Generate at least 15 categorized user questions based on product data
+   - **Backstory**: Creates comprehensive questions that users typically ask about skincare products
+   - **Output**: JSON with categorized questions (informational, safety, usage, purchase, comparison)
 
-3. **ContentAssembler Agent**
-   - **Responsibility**: Assemble content pages using templates and logic blocks
-   - **Input**: Product model, questions, template type
-   - **Output**: JSON-structured page content
-   - **Logic**: Applies appropriate logic blocks and templates for each page type
+3. **FAQ Generator Agent**
+   - **Role**: Customer Service Specialist
+   - **Goal**: Generate detailed FAQ answers based on product information and user questions
+   - **Backstory**: Provides accurate, helpful answers to skincare product questions
+   - **Output**: JSON structure with product name and FAQ array
 
-4. **Orchestrator Agent**
-   - **Responsibility**: Coordinate the entire pipeline execution
-   - **Input**: Raw product data
-   - **Output**: Complete set of generated JSON pages
-   - **Logic**: Executes agents in sequence, manages data flow
+4. **Product Description Generator Agent**
+   - **Role**: Copywriter
+   - **Goal**: Create compelling product descriptions and specifications
+   - **Backstory**: Skilled copywriter creating engaging product descriptions for e-commerce
+   - **Output**: Complete product page JSON with description
 
-### Orchestration Flow
+5. **Comparison Generator Agent**
+   - **Role**: Market Analyst
+   - **Goal**: Create fictional competitor products and detailed comparisons
+   - **Backstory**: Market analyst creating realistic competitor products and comparisons
+   - **Output**: Comparison page JSON with both products and comparison points
 
-The system uses a sequential pipeline orchestration:
+### CrewAI Orchestration Flow
+
+The system uses CrewAI's task orchestration with dependencies:
 
 ```
-Raw Data → DataParser → QuestionGenerator → ContentAssembler (FAQ) → ContentAssembler (Product) → ContentAssembler (Comparison) → JSON Outputs
+Raw Data → Data Parser Task → Question Generator Task → FAQ Generator Task
+                                                         → Product Generator Task
+                                                         → Comparison Generator Task → Outputs
 ```
 
-This linear flow ensures:
-- Data validation before processing
-- Question generation before content assembly
-- Independent page generation with shared context
-- Clear error propagation and debugging
+Key orchestration features:
+- **Task Dependencies**: Each task has proper context from previous tasks
+- **Sequential Execution**: Agents work in logical order with data flow
+- **Real AI Generation**: Every output is generated fresh by GPT-4 through CrewAI
+- **No Fallbacks**: All generation happens live, no hardcoded content
 
-### Reusable Logic Blocks
+### Agent Communication & Context
 
-Logic blocks are pure functions that transform data into content:
+- **Context Passing**: Task outputs are passed as context to dependent tasks
+- **Data Flow**: Product data flows through the entire pipeline
+- **Question Integration**: Generated questions feed into FAQ generation
+- **Dynamic Content**: All content is generated based on actual product data
 
-1. **generate_benefits_description(product)**: Creates compelling benefit descriptions
-2. **extract_usage_instructions(product)**: Formats usage instructions
-3. **create_safety_summary(product)**: Summarizes safety information
-4. **generate_comparison_points(product_a, product_b)**: Creates comparison bullet points
-5. **select_faq_questions(questions, count)**: Intelligently selects relevant FAQ questions
+### Quality Assurance
 
-### Template Engine
-
-Custom template definitions as structured dictionaries:
-
-```python
-faq_template = {
-    "fields": ["questions", "answers"],
-    "rules": ["select_top_questions", "generate_answers"],
-    "formatting": "q_and_a_pairs",
-    "dependencies": ["question_selector", "answer_generator"]
-}
-```
-
-Templates ensure consistent output structure while allowing flexibility in content generation.
-
-### Data Flow & State Management
-
-- Each agent maintains no internal state
-- Data flows unidirectionally through the pipeline
-- Pydantic models ensure type safety and validation
-- JSON serialization handles output formatting
-
-### Error Handling & Robustness
-
-- Input validation at each agent boundary
-- Graceful degradation for LLM failures
-- Structured error messages for debugging
-- Type checking with Pydantic models
-
-### Scalability Considerations
-
-- Modular agent design allows easy addition of new page types
-- Logic blocks can be reused across different products
-- Template system supports customization without code changes
-- Agent boundaries enable potential parallelization
+- **No Hardcoded Content**: All text is AI-generated in real-time
+- **Minimum Requirements Met**: At least 15 questions, 5 FAQ items
+- **JSON Structure**: Consistent output formatting
+- **Product-Specific Answers**: All responses reference actual product details
 
 ## Architecture Diagram
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Orchestrator  │───▶│   DataParser    │───▶│QuestionGenerator│
+│   CrewAI Crew   │───▶│ Data Parser     │───▶│Question Generator│
+│   Orchestrator  │    │   Agent         │    │   Agent          │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
                                                        │
 ┌─────────────────┐    ┌─────────────────┐             ▼
-│ ContentAssembler│◀───│   Logic Blocks  │    ┌─────────────────┐
-│     (FAQ)       │    │                 │    │   Templates     │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │
+│ FAQ Generator   │◀───│   Context       │    ┌─────────────────┐
+│   Agent         │    │   Passing       │    │ Product Generator│
+└─────────────────┘    └─────────────────┘    │   Agent          │
+         │                                   └─────────────────┘
          ▼
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│ ContentAssembler│    │ ContentAssembler│    │ ContentAssembler│
-│   (Product)     │    │  (Comparison)   │    │    Outputs      │
+│ Comparison      │    │   Outputs       │    │   JSON Files    │
+│ Generator Agent │    │                 │    │                 │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
-This design ensures modularity, testability, and maintainability while meeting all assignment requirements.
+## Technical Implementation
+
+### CrewAI Framework Usage
+
+- **Agent Definition**: Each agent has role, goal, and backstory for proper AI behavior
+- **Task Creation**: Tasks define specific objectives with context dependencies
+- **Crew Execution**: Orchestrates agent collaboration and task completion
+- **Result Processing**: Handles AI-generated content and formats outputs
+
+### Data Models (Pydantic)
+
+- **Product**: Core product data structure
+- **FAQPage**: FAQ content with questions and answers
+- **ProductPage**: Complete product information
+- **ComparisonPage**: Side-by-side product comparison
+
+### Environment & Dependencies
+
+- **CrewAI**: Multi-agent orchestration framework
+- **OpenAI GPT-4**: AI content generation
+- **Pydantic**: Data validation and models
+- **python-dotenv**: Environment variable management
+
+This CrewAI-based design ensures real AI-powered generation without any hardcoded fallbacks, meeting all assignment requirements for genuine agentic systems.
