@@ -35,21 +35,35 @@ class CompetitorLookupTool(BaseTool):
             }
         }
         
+        # Generic Fallback Structure
+        fallback_product = {
+            "name": "Generic Competitor Product",
+            "concentration": "Standard Concentration",
+            "skin_type": "General",
+            "key_ingredients": "Common active ingredients",
+            "benefits": "Standard category benefits",
+            "how_to_use": "Standard usage",
+            "side_effects": "Standard side effects",
+            "price": "Market Average"
+        }
+
         # Normalize query
         key = query.lower().strip()
         
         # Search logic
         result = competitors_db.get(key)
         
-        # Fallback for fuzzy matching
+        # Fuzzy matching
         if not result:
             for k, v in competitors_db.items():
                 if k in key or key in k:
                     result = v
                     break
         
-        if result:
-            return json.dumps(result)
-        else:
-            return "No specific competitor found for this category. Suggest using a generic localized competitor."
+        # Fallback if still not found
+        if not result:
+            result = fallback_product
+            result["name"] = f"Generic {query.title()} Competitor"
+        
+        return json.dumps(result)
 

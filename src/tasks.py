@@ -49,7 +49,10 @@ def create_tasks(agents, product_data):
         description=dedent("""
             Using the validated product data and generated questions, create a comprehensive FAQ section.
 
-            Select the 5 most relevant questions (one from each category) and provide detailed, accurate answers based ONLY on the verified product data.
+            You MUST generate at least 15 detailed FAQ items.
+            
+            Source questions from the generated list, ensuring you cover all categories (Informational, Safety, Usage, Purchase, Comparison).
+            If you need more questions to reach 15, generate relevant high-quality ones based on the product data.
 
             Each answer must:
             - Be specific to this product's actual features
@@ -58,7 +61,7 @@ def create_tasks(agents, product_data):
             - Be based on verified data only
         """),
         agent=faq_generator,
-        expected_output="JSON object with product name and 5 FAQ items",
+        expected_output="JSON object with product name and at least 15 FAQ items",
         context=[parse_data_task, generate_questions_task],
         output_pydantic=FAQPage # Strict Pydantic Output with validator
     )

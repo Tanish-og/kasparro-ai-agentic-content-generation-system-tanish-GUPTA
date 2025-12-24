@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, model_validator
 from typing import List, Dict, Any
 
 
@@ -43,14 +43,20 @@ class CategorizedQuestions(BaseModel):
     @field_validator('comparison')
     @classmethod
     def check_total_count(cls, v: List[str], info) -> List[str]:
-        # This is a bit tricky with field validators, so we might need a model_validator
-        # or just rely on the fact that we need 5 per category as per prompt instructions.
-        # Let's simple check strict 5 per category to match the "EXACTLY 15+" and "5 per category" prompt.
-        # However, the user prompt said "at least 15 questions". 
-        # The prompt in main.py asked for exactly 5 per category = 25 total.
-        # I'll enforce that each list has at least 3 items to be safe and >= 15 total.
-        pass
+        # We cannot easily check other fields here in field_validator without validation_info accessing instance
+        # faster to rely on the total_questions method check or use model_validator.
+        # However, we can at least ensure this specific list is non-empty.
+        if not v:
+            raise ValueError("Comparison questions must not be empty")
         return v
+    
+    @model_validator(mode='after')
+    def check_sum_total(self) -> 'CategorizedQuestions':
+        total = (len(self.informational) + len(self.safety) + 
+                 len(self.usage) + len(self.purchase) + len(self.comparison))
+        if total < 15:
+             raise ValueError(f"Total questions must be at least 15, got {total}")
+        return self
 
 
 class FAQItem(BaseModel):
@@ -65,8 +71,8 @@ class FAQPage(BaseModel):
     @field_validator('faqs')
     @classmethod
     def check_min_faqs(cls, v: List[FAQItem]) -> List[FAQItem]:
-        if len(v) < 5:
-            raise ValueError(f"Must have at least 5 FAQs, got {len(v)}")
+        if len(v) < 15:
+            raise ValueError(f"Must have at least 15 FAQs to meet requirements, got {len(v)}")
         return v
 
 
@@ -82,8 +88,19 @@ class ProductPage(BaseModel):
     description: str
 
 
+class CompetitorProduct(BaseModel):
+    name: str
+    concentration: str
+    skin_type: str
+    key_ingredients: str
+    benefits: str
+    how_to_use: str
+    side_effects: str
+    price: str
+
+
 class ComparisonPage(BaseModel):
     product_a: Dict[str, Any]
-    product_b: Dict[str, Any]
+    product_b: CompetitorProduct
     comparison_points: List[str]
 

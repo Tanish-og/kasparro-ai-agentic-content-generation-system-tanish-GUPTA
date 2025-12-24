@@ -26,12 +26,12 @@ def test_categorized_questions_validation():
         CategorizedQuestions(**invalid_data)
 
 def test_faq_page_validation():
-    # Valid case
-    valid_faqs = [FAQItem(question=f"q{i}", answer=f"a{i}") for i in range(5)]
+    # Valid case (15+ FAQs)
+    valid_faqs = [FAQItem(question=f"q{i}", answer=f"a{i}") for i in range(15)]
     model = FAQPage(product_name="Test", faqs=valid_faqs)
-    assert len(model.faqs) == 5
+    assert len(model.faqs) == 15
 
-    # Invalid case (< 5)
-    invalid_faqs = [FAQItem(question=f"q{i}", answer=f"a{i}") for i in range(4)]
+    # Invalid case (< 15)
+    invalid_faqs = [FAQItem(question=f"q{i}", answer=f"a{i}") for i in range(14)]
     with pytest.raises(ValueError):
         FAQPage(product_name="Test", faqs=invalid_faqs)
