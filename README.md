@@ -88,8 +88,8 @@ The system will:
 │   ├── main.py                    # CrewAI orchestration and task definitions
 │   ├── models.py                  # Pydantic data models
 │   ├── logic_blocks.py            # Minimal utility functions
-│   ├── agents.py                  # CrewAI agent configurations
-│   └── templates.py               # Template references (CrewAI handles generation)
+├── tests/
+│   └── test_logic_blocks.py       # Unit tests for validation functions
 ├── outputs/                       # AI-generated JSON files
 ├── .env                           # Environment variables (API keys)
 ├── requirements.txt               # CrewAI and dependencies

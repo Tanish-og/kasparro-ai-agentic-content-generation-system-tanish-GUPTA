@@ -12,6 +12,9 @@ from typing import Dict, Any
 
 def validate_product_data(data: Dict[str, Any]) -> bool:
     """Validate that product data contains all required fields."""
+    if not data or not isinstance(data, dict):
+        return False
+
     required_fields = [
         'name', 'concentration', 'skin_type', 'key_ingredients',
         'benefits', 'how_to_use', 'side_effects', 'price'
