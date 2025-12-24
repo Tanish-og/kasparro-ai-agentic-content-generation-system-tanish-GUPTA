@@ -47,5 +47,4 @@ venv.bak/
 Thumbs.db
 
 # Project specific
-outputs/
 *.pdf

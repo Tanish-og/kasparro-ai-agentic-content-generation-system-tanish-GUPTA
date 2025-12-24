@@ -1,4 +1,4 @@
-crewai==0.5.0
+crewai==0.30.11
 openai==1.109.1
 pydantic==2.12.5
 python-dotenv==1.2.1

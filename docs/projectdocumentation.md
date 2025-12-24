@@ -1,130 +1,54 @@
-# Kasparro AI Agentic Content Generation System
+# Project Documentation
 
 ## Problem Statement
-
-The challenge requires designing and implementing a modular agentic automation system that processes a small product dataset and autonomously generates structured, machine-readable content pages. The system must handle parsing product data, generating categorized user questions, creating templates for different page types, implementing reusable content logic blocks, and assembling three specific pages (FAQ, Product Description, Comparison) as clean JSON outputs. The entire pipeline must run through agents, not as a monolithic script, emphasizing multi-agent workflows, automation graphs, and system design principles.
+The challenge is to design a modular, agentic automation system that transforms unstructured or semi-structured product data into high-quality, structured content pages (FAQ, Product Description, Comparison). The system must avoid monolithic script design, ensure deterministic output quality (e.g., minimum question counts), and produce machine-readable JSON files, all while being powered by separate AI agents with distinct responsibilities.
 
 ## Solution Overview
+This solution implements a multi-agent system using the **CrewAI** framework. It orchestrates specialized agents (Data Validator, Question Generator, FAQ Specialist, Copywriter, Analyst) to process input data through a sequential automation graph. 
 
-This project implements a multi-agent content generation system using CrewAI framework with specialized agents for different aspects of content creation. The system uses OpenAI's GPT-4 through CrewAI agents to autonomously generate all content without hardcoded fallbacks or fake outputs. The architecture follows proper agent orchestration with clear roles, responsibilities, and task dependencies. The system processes the GlowBoost Vitamin C Serum product data to produce FAQ, product description, and comparison pages in JSON format.
+Key architectural decisions:
+- **Strict Validation**: We use **Pydantic** models not just for output structure but as a "Template Engine" to enforce business logic (e.g., ensuring >= 15 questions are generated).
+- **Separation of Concerns**: Logic is decoupled into `agents.py` (roles), `tasks.py` (instructions/templates), `tools.py` (capabilities), and `models.py` (schemas).
+- **Hybrid Intelligence**: While LLMs generate content, deterministic Python code (Validators and Tools) acts as a "Gatekeeper" to prevent hallucinations and enforce quantity requirements.
 
 ## Scopes & Assumptions
-
-- **Input Data**: Strictly uses only the provided GlowBoost Vitamin C Serum data; no external research or additional facts are added.
-- **Product B**: For comparison page, AI generates a fictional but realistic skincare product dynamically.
-- **AI Generation**: Uses CrewAI with OpenAI GPT-4 for all content generation - no hardcoded answers or fallbacks.
-- **Output Format**: All pages are generated as machine-readable JSON with consistent structure.
-- **Agent Framework**: Uses CrewAI (required framework) for proper multi-agent orchestration.
-- **Question Count**: Generates at least 15 categorized questions as required.
-- **No Fakes**: All content is AI-generated in real-time, no static strings or rule-based fallbacks.
+- **Scope**: The system is designed to handle the specific "GlowBoost Vitamin C Serum" dataset but is generic enough to handle similar skincare products via the input JSON.
+- **Assumptions**: 
+  - The environment provides a valid OpenAI API key.
+  - "Product B" for comparison should be a realistic but fictional competitor retrieved via a simulated database tool.
+  - Using Pydantic V2 for validation.
 
 ## System Design
 
-### CrewAI Agent Architecture
+### 1. Automation Graph (Sequential Pipeline)
+The system follows a linear Directed Acyclic Graph (DAG) flow:
+1.  **Input Injection**: `inputs/product.json` is loaded.
+2.  **Data Validation Agent**: Parses raw JSON validation against the `Product` schema.
+3.  **Question Generation Agent**: Brainstorms 25+ questions across 5 categories. *Output optimized via Pydantic Validator logic.*
+4.  **FAQ Generation Agent**: Selects the best questions and drafts verified answers.
+5.  **Product Page Agent**: Synthesizes a full landing page data structure.
+6.  **Comparison Agent**: Uses `CompetitorLookupTool` to fetch fictional Product B data and generates a comparison matrix.
 
-The system consists of five specialized CrewAI agents, each with distinct roles and expertise:
+### 2. Logic Blocks & Templates
+- **Template Engine**: We define "Templates" as strict Pydantic models in `src/models.py`. These models define the fields, types, and validation rules (e.g., `check_min_questions`) that the content must adhere to.
+- **Reusable Logic**:
+    - **Validation Logic**: Enforced in `src/models.py`.
+    - **Competitor Retrieval Logic**: Encapuslated in `src/tools.py`.
+    - **Task Templates**: Reusable prompt structures defined in `src/tasks.py`.
 
-1. **Data Parser Agent**
-   - **Role**: Data Validator
-   - **Goal**: Parse and validate raw product data into structured format
-   - **Backstory**: Expert data validator ensuring product information is correctly structured
-   - **Output**: Validated JSON structure of product data
+### 3. Agent Boundaries
+| Agent | Role | Input | Output |
+|-------|------|-------|--------|
+| **Data Validator** | Data Parsing | Raw JSON | Validated `Product` Object |
+| **Content Strategist** | Ideation | Product Data | `CategorizedQuestions` (>15 items) |
+| **Customer Service** | Content Creation | Questions + Data | `FAQPage` (>5 items) |
+| **Copywriter** | Synthesis | Product Data | `ProductPage` |
+| **Market Analyst** | Research & Compare | Product Data | `ComparisonPage` |
 
-2. **Question Generator Agent**
-   - **Role**: Content Strategist
-   - **Goal**: Generate at least 15 categorized user questions based on product data
-   - **Backstory**: Creates comprehensive questions that users typically ask about skincare products
-   - **Output**: JSON with categorized questions (informational, safety, usage, purchase, comparison)
-
-3. **FAQ Generator Agent**
-   - **Role**: Customer Service Specialist
-   - **Goal**: Generate detailed FAQ answers based on product information and user questions
-   - **Backstory**: Provides accurate, helpful answers to skincare product questions
-   - **Output**: JSON structure with product name and FAQ array
-
-4. **Product Description Generator Agent**
-   - **Role**: Copywriter
-   - **Goal**: Create compelling product descriptions and specifications
-   - **Backstory**: Skilled copywriter creating engaging product descriptions for e-commerce
-   - **Output**: Complete product page JSON with description
-
-5. **Comparison Generator Agent**
-   - **Role**: Market Analyst
-   - **Goal**: Create fictional competitor products and detailed comparisons
-   - **Backstory**: Market analyst creating realistic competitor products and comparisons
-   - **Output**: Comparison page JSON with both products and comparison points
-
-### CrewAI Orchestration Flow
-
-The system uses CrewAI's task orchestration with dependencies:
-
-```
-Raw Data → Data Parser Task → Question Generator Task → FAQ Generator Task
-                                                         → Product Generator Task
-                                                         → Comparison Generator Task → Outputs
-```
-
-Key orchestration features:
-- **Task Dependencies**: Each task has proper context from previous tasks
-- **Sequential Execution**: Agents work in logical order with data flow
-- **Real AI Generation**: Every output is generated fresh by GPT-4 through CrewAI
-- **No Fallbacks**: All generation happens live, no hardcoded content
-
-### Agent Communication & Context
-
-- **Context Passing**: Task outputs are passed as context to dependent tasks
-- **Data Flow**: Product data flows through the entire pipeline
-- **Question Integration**: Generated questions feed into FAQ generation
-- **Dynamic Content**: All content is generated based on actual product data
-
-### Quality Assurance
-
-- **No Hardcoded Content**: All text is AI-generated in real-time
-- **Minimum Requirements Met**: At least 15 questions, 5 FAQ items
-- **JSON Structure**: Consistent output formatting
-- **Product-Specific Answers**: All responses reference actual product details
-
-## Architecture Diagram
-
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   CrewAI Crew   │───▶│ Data Parser     │───▶│Question Generator│
-│   Orchestrator  │    │   Agent         │    │   Agent          │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                                       │
-┌─────────────────┐    ┌─────────────────┐             ▼
-│ FAQ Generator   │◀───│   Context       │    ┌─────────────────┐
-│   Agent         │    │   Passing       │    │ Product Generator│
-└─────────────────┘    └─────────────────┘    │   Agent          │
-         │                                   └─────────────────┘
-         ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│ Comparison      │    │   Outputs       │    │   JSON Files    │
-│ Generator Agent │    │                 │    │                 │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-```
-
-## Technical Implementation
-
-### CrewAI Framework Usage
-
-- **Agent Definition**: Each agent has role, goal, and backstory for proper AI behavior
-- **Task Creation**: Tasks define specific objectives with context dependencies
-- **Crew Execution**: Orchestrates agent collaboration and task completion
-- **Result Processing**: Handles AI-generated content and formats outputs
-
-### Data Models (Pydantic)
-
-- **Product**: Core product data structure
-- **FAQPage**: FAQ content with questions and answers
-- **ProductPage**: Complete product information
-- **ComparisonPage**: Side-by-side product comparison
-
-### Environment & Dependencies
-
-- **CrewAI**: Multi-agent orchestration framework
-- **OpenAI GPT-4**: AI content generation
-- **Pydantic**: Data validation and models
-- **python-dotenv**: Environment variable management
-
-This CrewAI-based design ensures real AI-powered generation without any hardcoded fallbacks, meeting all assignment requirements for genuine agentic systems.
+## Output Structure
+All final artifacts are saved to `outputs/` as clean JSON:
+- `outputs/validated_product.json`
+- `outputs/questions.json`
+- `outputs/faq.json`
+- `outputs/product_page.json`
+- `outputs/comparison_page.json`

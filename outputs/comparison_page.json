@@ -1,0 +1,29 @@
+{
+  "product_a": {
+    "name": "GlowBoost Vitamin C Serum",
+    "concentration": "10% Vitamin C",
+    "skin_type": "Oily, Combination",
+    "key_ingredients": "Vitamin C, Hyaluronic Acid",
+    "benefits": "Brightening, Fades dark spots",
+    "how_to_use": "Apply 2–3 drops in the morning before sunscreen",
+    "side_effects": "Mild tingling for sensitive skin",
+    "price": "₹699"
+  },
+  "product_b": {
+    "name": "LuminaGlow C+ Serum",
+    "concentration": "15% Vitamin C",
+    "skin_type": "All Skin Types",
+    "key_ingredients": "Vitamin C, Ferulic Acid, Vitamin E",
+    "benefits": "Anti-aging, Radiance, Protection",
+    "how_to_use": "Apply 4-5 drops daily after cleansing",
+    "side_effects": "Rare sensitivity",
+    "price": "₹799"
+  },
+  "comparison_points": [
+    "Concentration: GlowBoost contains 10% Vitamin C, while LuminaGlow C+ offers a higher 15% concentration.",
+    "Skin Suitability: GlowBoost is targeted for Oily and Combination skin, whereas LuminaGlow C+ is formulated for All Skin Types.",
+    "Ingredients: GlowBoost highlights Hyaluronic Acid for hydration; LuminaGlow includes Ferulic Acid and Vitamin E for stability.",
+    "Usage: GlowBoost requires 2-3 drops in the morning; LuminaGlow suggests 4-5 drops daily.",
+    "Price: GlowBoost is more affordable at ₹699 compared to LuminaGlow C+ at ₹799."
+  ]
+}
